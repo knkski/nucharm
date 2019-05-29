@@ -1,0 +1,43 @@
+name: mariadb
+description: |
+  MariaDB - A GPLed, community-developed fork of MySQL
+
+  Some long description of MariaDB
+
+repo: https://github.com/juju-solutions/bundle-kubeflow.git
+maintainers: [Juju Developers <juju@lists.ubuntu.com>]
+tags:
+  - database
+  - k8s
+  - kubernetes
+  - openstack
+
+series:
+  - aws
+  - gce
+  - kubernetes
+
+provides:
+  - name: mysql
+
+dependencies:
+  mysql-connector-python: ^8.0
+
+config:
+  root-password:
+    description: Password for the root user
+    type: secret
+    source: generate
+    public: false
+  database:
+    description: Database name
+    type: string
+    default: mysql-db
+  user:
+    description: Regular user name
+    type: string
+    default: 'mysql-user'
+  password:
+    description: Regular user password
+    type: secret
+    source: .env
