@@ -23,6 +23,11 @@ provides:
 dependencies:
   mysql-connector-python: ^8.0
 
+# See react_noop in charm.py
+# If this value is left unset, Juju defaults to applying the config
+# change and restarting the service with the updated configuration
+react: react_noop
+
 config:
   root-password:
     description: Password for the root user
