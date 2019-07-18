@@ -28,9 +28,23 @@ class ChangeHandled(StateReaction):
 
 
 class ChangeDenied(StateReaction):
-    """Signifies that the charm code denied updating the state."""
+    """Signifies that the charm code denied updating the state.
+
+    Juju will not attempt this change again
+    """
     def __init__(self, reason: str):
         self.reason = reason
+
+
+class ChangeFailed(StateReaction):
+    """Signifies that the charm code failed updating the state.
+
+    Juju will attempt this change again until it either succeeds or
+    fails with `ChangeDenied`.
+    """
+    def __init__(self, reason: str, traceback: Exception = None):
+        self.reason = reason
+        self.traceback = traceback
 
 
 # Classes in charm.state or somesuch
@@ -54,12 +68,12 @@ def react_noop(new_state: State, old_state: State, diff: Diff) -> StateReaction:
     ...
 
 
-# Example handler showing an exception being thrown. Equivalent to
+# Example handler showing an exception being thrown. Handled as
 # try:
-#     handle_change()
+#     react_error(new_state, old_state, diff)
 # except Exception as err:
-#     return ChangeDenied(str(err))
-def react_error(new_state: State, old_state: State, diff: Diff) -> StateReaction:
+#     return ChangeFailed('State change handler failed.', err)
+def react_fail(new_state: State, old_state: State, diff: Diff) -> StateReaction:
     raise Exception("Something happened!")
 
 
@@ -85,6 +99,9 @@ def react_check(new_state: State, old_state: State, diff: Diff) -> StateReaction
         if not existing_user:
             print("WARN: Old user doesn't exist!")
 
-    f"UPDATE users SET name = {new_state.config['user']} WHERE name = {old_state.config['user']}"
+    try:
+        f"UPDATE users SET name = {new_state.config['user']} WHERE name = {old_state.config['user']}"
+    except Exception as err:
+        return ChangeFailed('Couldn\'t update username', err)
 
     return ChangeHandled()
